@@ -1,8 +1,6 @@
 package com.xae_xii;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.Key;
-import java.time.Instant;
-import java.util.Base64;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -10,6 +8,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 public class Main extends TelegramLongPollingBot {
+    private Messenger messenger = new Messenger(this);
+    private static final Logger logger = LogManager.getLogger(Main.class);
     public boolean state = false;
 
     // Replace with your real Telegram user ID
@@ -36,16 +36,19 @@ public class Main extends TelegramLongPollingBot {
                 System.out.println("Unauthorized user tried to access the bot: " + userId);
                 return;
             }
-            while(!state){
+            if(!state){
                 String[] Login_inf = update.getMessage().getText().split(" ");
-                SendMessage message = new SendMessage();
-                message.setChatId(String.valueOf(chatId));
-             //   message.setText("You kai said: " + messageText);
-            }
-            try {
-               // execute(message); // sends reply
-            } catch (Exception e) {
-                e.printStackTrace();
+                DB db = new DB();
+                Auth auth = new Auth();
+                if(db.check(Login_inf[0], userId) && Integer.parseInt(Login_inf[1]) == auth.otp()){
+                    logger.info("Log in successful by "+ userId);
+                    messenger.sendMsg(chatId, "Welcome "+ Login_inf[0]);
+                    state =true;    
+                } else {
+                    messenger.sendMsg(chatId, "Invalid credentials...");
+                }
+            }else {
+
             }
         
     }
@@ -56,7 +59,7 @@ public class Main extends TelegramLongPollingBot {
         try {
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
             botsApi.registerBot(new Main());
-            System.out.println("Bot started...");
+            logger.info("Bot started...");
         } catch (Exception e) {
             e.printStackTrace();
         }
