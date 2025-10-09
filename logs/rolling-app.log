@@ -5,3 +5,9 @@
 [2025-10-09 22:27:26] [XAE_Xii_808Bot Telegram Executor] INFO  com.xae_xii.DB - User x11-b found...
 [2025-10-09 22:27:26] [XAE_Xii_808Bot Telegram Executor] INFO  com.xae_xii.Auth - Current TOTP code: 526527
 [2025-10-09 22:27:26] [XAE_Xii_808Bot Telegram Executor] INFO  com.xae_xii.Main - Log in successful by 7432819887
+[2025-10-09 23:23:59] [main] INFO  com.xae_xii.Main - Bot started...
+[2025-10-09 23:24:04] [XAE_Xii_808Bot Telegram Executor] INFO  com.xae_xii.DB - Invalid username by 7432819887
+[2025-10-09 23:24:06] [XAE_Xii_808Bot Telegram Executor] INFO  com.xae_xii.DB - Invalid username by 7432819887
+[2025-10-09 23:24:26] [XAE_Xii_808Bot Telegram Executor] INFO  com.xae_xii.DB - User x11-b found...
+[2025-10-09 23:24:26] [XAE_Xii_808Bot Telegram Executor] INFO  com.xae_xii.Auth - Current TOTP code: 93876
+[2025-10-09 23:24:26] [XAE_Xii_808Bot Telegram Executor] INFO  com.xae_xii.Main - Log in successful by 7432819887
