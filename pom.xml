@@ -104,8 +104,6 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-
-        <!-- ✅ Added: build fat jar with main class -->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

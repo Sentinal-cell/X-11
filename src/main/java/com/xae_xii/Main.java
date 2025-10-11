@@ -17,12 +17,12 @@ public class Main extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return "XAE_Xii_808Bot"; // from BotFather
+        return "XAE_Xii_808Bot"; 
     }
 
     @Override
     public String getBotToken() {
-        return "8192327224:AAGiAXWvf5VhjOMshWR3-enZYrwQVI_v2MU"; // from BotFather
+        return "8192327224:AAGiAXWvf5VhjOMshWR3-enZYrwQVI_v2MU";
     }
 
     @Override
@@ -42,10 +42,15 @@ public class Main extends TelegramLongPollingBot {
                 Auth auth = new Auth();
                 if(db.check(Login_inf[0], userId) && Integer.parseInt(Login_inf[1]) == auth.otp()){
                     logger.info("Log in successful by "+ userId);
-                    messenger.sendMsg(chatId, "Welcome "+ Login_inf[0]);
+                    String[] uinf = db.ret(Login_inf[0]);
+                    messenger.sendMsg(chatId, "Welcome "+ uinf[0]);
                     state =true;    
                 } else {
+                    if(db.check(Login_inf[0], userId)){
+                        messenger.sendMsg(chatId, "Authentication code incorrect...");
+                    }else{
                     messenger.sendMsg(chatId, "Invalid credentials...");
+                }
                 }
             }else {
 
