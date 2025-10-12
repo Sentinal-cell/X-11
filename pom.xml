@@ -44,10 +44,10 @@
 
         <!-- MySQL Connector -->
         <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>8.2.0</version>
-        </dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>8.0.33</version>
+</dependency>
 
         <!-- Log4j API + Core -->
         <dependency>
@@ -131,5 +131,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
