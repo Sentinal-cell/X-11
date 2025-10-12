@@ -22,7 +22,8 @@ public class Main extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "8192327224:AAGiAXWvf5VhjOMshWR3-enZYrwQVI_v2MU";
+        String token = System.getenv("TELEGRAM_TOKEN");
+        return token;
     }
 
     @Override
@@ -69,4 +70,5 @@ public class Main extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
+
 }
