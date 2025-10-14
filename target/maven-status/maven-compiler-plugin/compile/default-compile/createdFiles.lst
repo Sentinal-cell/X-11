@@ -1,4 +1,7 @@
 com\xae_xii\Auth.class
+com\xae_xii\XaeBot.class
 com\xae_xii\Messenger.class
-com\xae_xii\Main.class
+com\xae_xii\commands\Hell.class
 com\xae_xii\DB.class
+com\xae_xii\commands\Command.class
+com\xae_xii\commands\Logout.class
