@@ -4,6 +4,9 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.xae_xii.commands.Command;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -19,16 +22,33 @@ public class XaeBot extends TelegramLongPollingBot {
     private Messenger messenger = new Messenger(this);
     private Map<String, Command> commands = new HashMap<>();
     private static final Logger logger = LogManager.getLogger(XaeBot.class);
-    private boolean state = false;
+    private static final long TIMEOUT_MINUTES = 5;
+    private volatile long lastActivityTime;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private volatile boolean state = false;
     private long chatId;
     private long userId;
     private String mode = "none";
-    // Replace with your real Telegram user ID
     private static final long ALLOWED_USER_ID = Long.parseLong(dotenv.get("ALLOWED_USER_ID"));
     public XaeBot(){
         commands.put("start", new Hell());
         commands.put("logout", new Logout());
+        startSessionWatcher();
     }
+    private void startSessionWatcher() {
+        scheduler.scheduleAtFixedRate(() -> {
+            if (state) {
+                long now = System.currentTimeMillis();
+                long inactiveMinutes = (now - lastActivityTime) / 1000 / 60;
+                if (inactiveMinutes >= TIMEOUT_MINUTES) {
+                    state = false;
+                    messenger.sendMsg(chatId, "Session expired due to inactivity. Please log in again.");
+                    logger.info("User " + userId + " logged out automatically due to inactivity.");
+                }
+            }
+        }, 1, 1, TimeUnit.MINUTES); // checks every minute
+    }
+
     public Messenger getMessenger() {
         return messenger;
     }
@@ -56,7 +76,8 @@ public class XaeBot extends TelegramLongPollingBot {
             userId = update.getMessage().getFrom().getId();
             chatId = update.getMessage().getChatId();
             String text = update.getMessage().getText();
-            // Only allow your account
+            lastActivityTime = System.currentTimeMillis();
+
             if (userId != ALLOWED_USER_ID) {
                 System.out.println("Unauthorized user tried to access the bot: " + userId);
                 return;
