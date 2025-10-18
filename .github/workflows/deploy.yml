@@ -1,0 +1,45 @@
+name: Deploy to Linode (Maven + .env + DB)
+
+on:
+  push:
+    branches:
+      - main   # runs whenever you push to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.LINODE_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Linode
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.LINODE_USER }}@${{ secrets.LINODE_HOST }} "
+            cd ~/main || mkdir -p ~/main && cd ~/main
+
+            # If repo doesn't exist, clone it; otherwise, update it
+            if [ ! -d .git ]; then
+              git clone https://github.com/${{ github.repository }}.git .
+            else
+              git fetch origin main
+              git reset --hard origin/main
+            fi
+
+            # Preserve your .env file (don’t overwrite)
+            [ -f .env ] && echo '.env preserved'
+
+            # Build Maven project
+            mvn clean package -DskipTests
+
+            # Restart the Telegram bot
+            pkill -f 'java -jar' || true
+            nohup java -jar target/*.jar > logs/bot.log 2>&1 &
+          "
