@@ -3,18 +3,18 @@ name: Deploy to Linode (Maven + .env + DB)
 on:
   push:
     branches:
-      - main
+      - main  # Trigger deploys when you push to the main branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout your repository code
+      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup SSH so we can connect to your Linode
+      # Step 2: Setup SSH to connect to Linode
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -22,31 +22,43 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.LINODE_HOST }} >> ~/.ssh/known_hosts
 
-      # 3️⃣ Deploy your project to Linode
+      # Step 3: Deploy to Linode via SSH
       - name: Deploy to Linode
         run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.LINODE_USER }}@${{ secrets.LINODE_HOST }} "
-            # --- Go to your app directory (create if missing)
-            cd ~/app || mkdir -p ~/app && cd ~/app
+          set -x  # enable debug logging
 
-            # --- Clone or update your repo
-            if [ ! -d .git ]; then
-              git clone https://github.com/${{ github.repository }}.git .
-            else
-              git fetch origin main
-              git reset --hard origin/main
-            fi
+          ssh -T -i ~/.ssh/id_ed25519 ${{ secrets.LINODE_USER }}@${{ secrets.LINODE_HOST }} << 'EOF'
+          set -e  # stop on any error
 
-            # --- Preserve existing .env file
-            [ -f .env ] && echo '.env preserved'
+          # Go to main project folder (create if missing)
+          cd ~/main || (mkdir -p ~/main && cd ~/main)
 
-            # --- Make sure logs folder exists
-            mkdir -p logs
+          # Clone or update repo
+          if [ ! -d .git ]; then
+            git clone https://github.com/${{ github.repository }}.git .
+          else
+            git fetch origin main
+            git reset --hard origin/main
+          fi
 
-            # --- Build your Java project (Maven)
-            cd ~/app && mvn clean package -DskipTests
+          # Preserve existing .env (don't overwrite)
+          [ -f .env ] && echo ".env preserved"
 
-            # --- Restart the Telegram bot
-            pkill -f 'java -jar' || true
-            nohup java -jar target/*.jar > logs/bot.log 2>&1 &
-          "
+          # Ensure Java & Maven are installed
+          sudo apt update -y
+          sudo apt install -y openjdk-22-jdk maven
+
+          # Build your JAR file
+          mvn clean package -DskipTests
+
+          # Create logs directory
+          mkdir -p logs
+
+          # Stop any running instance of the bot
+          pkill -f 'java -jar' || true
+
+          # Start new instance (backgrounded)
+          nohup java -jar target/*-jar-with-dependencies.jar > logs/bot.log 2>&1 &
+
+          echo " Deployment complete at $(date)"
+          EOF
