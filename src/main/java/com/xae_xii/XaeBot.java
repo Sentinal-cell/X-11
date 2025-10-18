@@ -35,7 +35,7 @@ public class XaeBot extends TelegramLongPollingBot {
         commands.put("logout", new Logout());
         startSessionWatcher();
     }
-    //test 2
+    //test 3
     private void startSessionWatcher() {
         scheduler.scheduleAtFixedRate(() -> {
             if (state) {
