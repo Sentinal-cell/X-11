@@ -39,7 +39,7 @@ public class Auth {
                     new TimeBasedOneTimePasswordGenerator();
 
             Instant now = Instant.now();
-
+//yo
             // Check current, previous, and next 30-second time steps
             for (int i = -1; i <= 1; i++) {
                 Instant step = now.plusSeconds(i * 30L);
