@@ -1,0 +1,45 @@
+name: Deploy to Linode (Maven + .env + MySQL)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.LINODE_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Linode
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.LINODE_USER }}@${{ secrets.LINODE_HOST }} "
+            cd ~/app || mkdir -p ~/app && cd ~/app
+
+            # If repo doesn't exist, clone it. Otherwise, update it.
+            if [ ! -d .git ]; then
+              git clone https://github.com/${{ github.repository }}.git .
+            else
+              git fetch origin main
+              git reset --hard origin/main
+            fi
+
+            # Keep .env safe
+            [ -f .env ] && echo '.env preserved'
+
+            # Build project
+            mvn clean package -DskipTests
+
+            # Restart bot
+            pkill -f 'java -jar' || true
+            nohup java -jar target/*.jar > logs/bot.log 2>&1 &
+          "
