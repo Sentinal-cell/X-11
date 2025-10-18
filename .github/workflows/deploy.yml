@@ -1,28 +1,28 @@
-name: Deploy to Linode (Maven + .env + DB)
+name: Deploy to Linode
 
 on:
   push:
     branches:
-      - main  # Trigger deploys when you push to the main branch
+      - main  # Trigger when you push to main branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
+      # Step 1: Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Setup SSH to connect to Linode
-      - name: Setup SSH
+      # Step 2: Set up SSH access to Linode
+      - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          echo "${{ secrets.LINODE_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.LINODE_HOST }} >> ~/.ssh/known_hosts
 
-      # Step 3: Deploy to Linode via SSH
+      # Step 3: Deploy to Linode
       - name: Deploy to Linode
         run: |
           set -x  # enable debug logging
@@ -30,35 +30,45 @@ jobs:
           ssh -T -i ~/.ssh/id_ed25519 ${{ secrets.LINODE_USER }}@${{ secrets.LINODE_HOST }} << 'EOF'
           set -e  # stop on any error
 
-          # Go to main project folder (create if missing)
+          echo "=== Starting deployment on Linode ==="
+
+          # Move to or create main directory
           cd ~/main || (mkdir -p ~/main && cd ~/main)
 
-          # Clone or update repo
+          # Clone or update repository safely
           if [ ! -d .git ]; then
+            echo "Fresh clone..."
+            rm -rf * .[^.]* || true
             git clone https://github.com/${{ github.repository }}.git .
           else
+            echo "Updating existing repository..."
             git fetch origin main
             git reset --hard origin/main
           fi
 
-          # Preserve existing .env (don't overwrite)
+          # Preserve .env file if already exists
           [ -f .env ] && echo ".env preserved"
 
-          # Ensure Java & Maven are installed
+          # Install required packages
           sudo apt update -y
           sudo apt install -y openjdk-22-jdk maven
 
-          # Build your JAR file
+          echo "=== Building project with Maven ==="
           mvn clean package -DskipTests
 
           # Create logs directory
           mkdir -p logs
 
           # Stop any running instance of the bot
+          echo "=== Stopping existing bot instance (if any) ==="
           pkill -f 'java -jar' || true
 
-          # Start new instance (backgrounded)
-          nohup java -jar target/*-jar-with-dependencies.jar > logs/bot.log 2>&1 &
+          # Automatically find your JAR file
+          JAR_FILE=$(find target -name "*-jar-with-dependencies.jar" | head -n 1)
+
+          # Start new instance in background
+          echo "=== Starting new bot instance ==="
+          nohup java -jar "$JAR_FILE" > logs/bot.log 2>&1 &
 
           echo " Deployment complete at $(date)"
           EOF
