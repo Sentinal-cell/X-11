@@ -3,16 +3,18 @@ name: Deploy to Linode (Maven + .env + DB)
 on:
   push:
     branches:
-      - main   # runs whenever you push to the main branch
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout your repository code
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup SSH so we can connect to your Linode
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -20,12 +22,14 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.LINODE_HOST }} >> ~/.ssh/known_hosts
 
+      # 3️⃣ Deploy your project to Linode
       - name: Deploy to Linode
         run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.LINODE_USER }}@${{ secrets.LINODE_HOST }} "
-            cd ~/main || mkdir -p ~/main && cd ~/main
+            # --- Go to your app directory (create if missing)
+            cd ~/app || mkdir -p ~/app && cd ~/app
 
-            # If repo doesn't exist, clone it; otherwise, update it
+            # --- Clone or update your repo
             if [ ! -d .git ]; then
               git clone https://github.com/${{ github.repository }}.git .
             else
@@ -33,13 +37,16 @@ jobs:
               git reset --hard origin/main
             fi
 
-            # Preserve your .env file (don’t overwrite)
+            # --- Preserve existing .env file
             [ -f .env ] && echo '.env preserved'
 
-            # Build Maven project
-            mvn clean package -DskipTests
+            # --- Make sure logs folder exists
+            mkdir -p logs
 
-            # Restart the Telegram bot
+            # --- Build your Java project (Maven)
+            cd ~/app && mvn clean package -DskipTests
+
+            # --- Restart the Telegram bot
             pkill -f 'java -jar' || true
             nohup java -jar target/*.jar > logs/bot.log 2>&1 &
           "
