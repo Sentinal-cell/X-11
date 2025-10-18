@@ -49,6 +49,7 @@ jobs:
             mvn -f pom.xml clean package
 
             echo "Restarting app..."
+            mkdir -p logs  
             pkill -f 'java -jar' || true
             nohup java -jar main/target/*-jar-with-dependencies.jar > logs/app.log 2>&1 &
             echo "Deployment successful!"
