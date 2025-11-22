@@ -1,21 +1,23 @@
 package com.xae_xii;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import com.xae_xii.commands.Command;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import io.github.cdimascio.dotenv.Dotenv;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+import com.xae_xii.commands.Command;
 import com.xae_xii.commands.Hell;
 import com.xae_xii.commands.Logout;
+import com.xae_xii.commands.chatmode;
+
+import io.github.cdimascio.dotenv.Dotenv;
 
 public class XaeBot extends TelegramLongPollingBot {
     private static final Dotenv dotenv = Dotenv.load();
@@ -30,12 +32,14 @@ public class XaeBot extends TelegramLongPollingBot {
     private long userId;
     private String mode = "none";
     private static final long ALLOWED_USER_ID = Long.parseLong(dotenv.get("ALLOWED_USER_ID"));
-    public XaeBot(){
+
+    public XaeBot() {
         commands.put("start", new Hell());
         commands.put("logout", new Logout());
+        commands.put("chatmode", new chatmode());
         startSessionWatcher();
     }
-    //test 3
+
     private void startSessionWatcher() {
         scheduler.scheduleAtFixedRate(() -> {
             if (state) {
@@ -57,13 +61,15 @@ public class XaeBot extends TelegramLongPollingBot {
     public void setMode(String newMode) {
         this.mode = newMode;
     }
+
     public void setState(boolean newState) {
         this.state = newState;
-        logger.info("Logout successful by "+userId);
+        logger.info("Logout successful by " + userId);
     }
+
     @Override
     public String getBotUsername() {
-        return "XAE_Xii_808Bot"; 
+        return "XAE_Xii_808Bot";
     }
 
     @Override
@@ -80,10 +86,11 @@ public class XaeBot extends TelegramLongPollingBot {
             lastActivityTime = System.currentTimeMillis();
 
             if (userId != ALLOWED_USER_ID) {
-                System.out.println("Unauthorized user tried to access the bot: " + userId);
+                logger.info("Unauthorized user tried to access the bot: " + userId);
                 return;
             }
-            if(!state){
+
+            if (!state) {
                 String[] login_inf = update.getMessage().getText().split(" ");
                 DB db = new DB();
                 Auth auth = new Auth();
@@ -91,33 +98,50 @@ public class XaeBot extends TelegramLongPollingBot {
                     messenger.sendMsg(chatId, "Please enter both username and code (e.g., `user 1234`)");
                     return;
                 }
-                if(db.check(login_inf[0], userId) && Integer.parseInt(login_inf[1]) == auth.otp()){
-                    logger.info("Login successful by "+ userId);
+                if (db.check(login_inf[0], userId) && Integer.parseInt(login_inf[1]) == auth.otp()) {
+                    logger.info("Login successful by " + userId);
                     String[] uinf = db.ret(login_inf[0]);
-                    messenger.sendMsg(chatId, "Welcome "+ uinf[0]);
-                    state = true;    
+                    messenger.sendMsg(chatId, "Welcome " + uinf[0]);
+                    state = true;
                 } else {
-                    if(db.check(login_inf[0], userId)){
+                    if (db.check(login_inf[0], userId)) {
                         messenger.sendMsg(chatId, "Authentication code incorrect...");
-                    }else{
-                    messenger.sendMsg(chatId, "Invalid credentials...");
+                    } else {
+                        messenger.sendMsg(chatId, "Invalid credentials...");
+                    }
                 }
-                }
-            }else {
-                if(text.startsWith("/")){
+            } else {
+                // <-- MODE HANDLER START
+                if (text.startsWith("/")) {
                     String cmd = text.substring(1).toLowerCase();
+
+                    if (cmd.equals("chatmode")) {
+                        mode = "chat";
+                        messenger.sendMsg(chatId, "Entered Chat Mode. Type /exit to leave.");
+                        return;
+                    } else if (cmd.equals("exit")) {
+                        mode = "none";
+                        messenger.sendMsg(chatId, "Exited current mode.");
+                        return;
+                    }
+
                     Command actions = commands.get(cmd);
                     if (actions != null) {
                         actions.execute(chatId, text, this);
                     } else {
                         messenger.sendMsg(chatId, "Unknown command: " + cmd);
                     }
+                } else {
+                    if (mode.equals("chat")) {
+                        messenger.sendMsg(chatId, "[Chat Mode] You said: " + text);
+                    } else {
+                        messenger.sendMsg(chatId, "You said: " + text);
+                    }
                 }
+                // <-- MODE HANDLER END
             }
-        
+        }
     }
-}
-
 
     public static void main(String[] args) {
         try {
@@ -128,5 +152,4 @@ public class XaeBot extends TelegramLongPollingBot {
             logger.error("Error starting bot: ", e);
         }
     }
-
 }

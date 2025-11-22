@@ -1,1 +1,1 @@
-{"last_found_secrets": [{"name": "OpenSSH Private Key - commit://staged/linode_deploy_key", "match": "c67c2da369bae0404e3e5c4afbea375b0cc7ecde376401e58b14926df875a804"}]}
+{"last_found_secrets": [{"name": "Google API Key - commit://staged/src/main/java/com/xae_xii/commands/gemini.java", "match": "42c28650c89d94478beaed9a1dfccf3022748021bbcaf357dc3d9cc015c162a8"}]}
