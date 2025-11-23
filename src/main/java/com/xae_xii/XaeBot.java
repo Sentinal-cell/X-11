@@ -16,6 +16,7 @@ import com.xae_xii.commands.Command;
 import com.xae_xii.commands.Hell;
 import com.xae_xii.commands.Logout;
 import com.xae_xii.commands.chatmode;
+import com.xae_xii.commands.gemini;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -30,13 +31,14 @@ public class XaeBot extends TelegramLongPollingBot {
     private volatile boolean state = false;
     private long chatId;
     private long userId;
-    private String mode = "none";
+    public String mode = "none";
     private static final long ALLOWED_USER_ID = Long.parseLong(dotenv.get("ALLOWED_USER_ID"));
 
     public XaeBot() {
         commands.put("start", new Hell());
         commands.put("logout", new Logout());
         commands.put("chatmode", new chatmode());
+        commands.put("gemini", new gemini());
         startSessionWatcher();
     }
 
@@ -119,7 +121,12 @@ public class XaeBot extends TelegramLongPollingBot {
                         mode = "chat";
                         messenger.sendMsg(chatId, "Entered Chat Mode. Type /exit to leave.");
                         return;
-                    } else if (cmd.equals("exit")) {
+                    } 
+                    else if (cmd.equals("gemini")) {
+                       commands.get("gemini").execute(chatId, text, this);
+                       return;
+                    }
+                    else if (cmd.equals("exit")) {
                         mode = "none";
                         messenger.sendMsg(chatId, "Exited current mode.");
                         return;
@@ -132,6 +139,10 @@ public class XaeBot extends TelegramLongPollingBot {
                         messenger.sendMsg(chatId, "Unknown command: " + cmd);
                     }
                 } else {
+                    if (mode.equals("gemini")) {
+                        commands.get("gemini").execute(chatId, text, this);
+                        return;
+                     }
                     if (mode.equals("chat")) {
                         messenger.sendMsg(chatId, "[Chat Mode] You said: " + text);
                     } else {
