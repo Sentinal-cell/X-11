@@ -1,20 +1,18 @@
 package com.xae_xii.commands;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.xae_xii.Messenger;
 import com.xae_xii.XaeBot;
@@ -26,17 +24,16 @@ public class gemini implements Command {
     private static final Dotenv dotenv = Dotenv.load();
     private static final Logger logger = LogManager.getLogger(gemini.class);
     private static final String API_KEY = dotenv.get("API_KEY");
-    private static final String MODEL = "models/gemini-2.5-pro";
+    private static final String MODEL = "models/gemini-2.5-flash-lite";
 
-    // Persistent conversation memory
-    private List<String> history = new ArrayList<>();
+    private final List<String> history = new ArrayList<>();
 
     @Override
     public void execute(long chatId, String text, XaeBot bot) {
         Messenger messenger = bot.getMessenger();
 
-        // Handle /exit command
-        if (text.equalsIgnoreCase("/exit")) {
+        // Exit Gemini mode
+        if ("/exit".equalsIgnoreCase(text)) {
             bot.setMode("none");
             history.clear();
             messenger.sendMsg(chatId, "Exited Gemini Mode.");
@@ -57,7 +54,7 @@ public class gemini implements Command {
 
             String fullPrompt = buildFullPrompt();
 
-            // Correct JSON for the API
+            // Create request body
             String body = "{ \"contents\": [{ \"parts\": [{ \"text\": \"" +
                     fullPrompt.replace("\"", "\\\"") + "\" }] }] }";
 
@@ -70,34 +67,9 @@ public class gemini implements Command {
             HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // Save raw response to file
-            try (FileWriter fw = new FileWriter("gemini_responses.txt")) { // append mode
-                fw.write(response.body() + "\n\n");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-            // Read the entire file into a String
-            String son = new String(Files.readAllBytes(Paths.get("gemini_responses.txt"))); 
-
-            // Regex to match "text": "..."
-            String regex = "\"text\"\\s*:\\s*\"([^\"]*)\"";
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(son);
-
-            if (matcher.find()) {
-                String te = matcher.group(1);
-                System.out.println(te);
-            } else {
-                System.out.println("Text not found!");
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
             logger.info("Status code: " + response.statusCode());
 
-            // Parse response
+            // Extract text from response
             String output = extractText(response.body());
             history.add("Gemini: " + output);
 
@@ -121,32 +93,25 @@ public class gemini implements Command {
     }
 
     private static String extractText(String json) {
-        try (FileWriter fw = new FileWriter("gemini_responses.txt")) { // append mode
-                fw.write(json + "\n\n");
-        } catch (IOException e) {
-                e.printStackTrace();
-        }
         try {
-            // Read the entire file into a String
-            String son = new String(Files.readAllBytes(Paths.get("gemini_responses.txt"))); 
+            JSONObject obj = new JSONObject(json);
+            JSONArray candidates = obj.getJSONArray("candidates");
+            JSONObject firstCandidate = candidates.getJSONObject(0);
+            JSONObject content = firstCandidate.getJSONObject("content");
+            JSONArray parts = content.getJSONArray("parts");
+            String mainText = parts.getJSONObject(0).getString("text");
 
-            // Regex to match "text": "..."
-            String regex = "\"text\"\\s*:\\s*\"([^\"]*)\"";
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(son);
-
-            if (matcher.find()) {
-                String text = matcher.group(1);
-                System.out.println(text);
-                return text;
-            } else {
-                System.out.println("Text not found!");
-                return "Text not found!";
+            // Write JSON to file
+            try (FileWriter fw = new FileWriter("gemini_responses.txt", true)) { // append mode
+                fw.write(json + "\n\n");
+            } catch (IOException e) {
+                logger.error("Failed to write Gemini response to file", e);
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
+            return mainText;
+        } catch (Exception e) {
+            logger.error("Failed to extract text from Gemini response", e);
+            return "text not found";
         }
-        return "TEXT NOT FOUND";
     }
 }
