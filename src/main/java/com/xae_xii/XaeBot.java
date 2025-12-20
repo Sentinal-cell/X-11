@@ -1,7 +1,5 @@
 package com.xae_xii;
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,10 +12,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.Voice;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -36,11 +34,11 @@ public class XaeBot extends TelegramLongPollingBot {
     private Messenger messenger = new Messenger(this);
     private Map<String, Command> commands = new HashMap<>();
     private static final Logger logger = LogManager.getLogger(XaeBot.class);
-    private static final long TIMEOUT_MINUTES = 5;
+    private static final long TIMEOUT_MINUTES = 900;
     private volatile long lastActivityTime;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private volatile boolean state = false;
-    public static String preference;
+    public static String preference = "text";
     private long chatId;
     private long userId;
     public String mode = "none";
@@ -116,38 +114,28 @@ public class XaeBot extends TelegramLongPollingBot {
             Message msg = update.getMessage();
             chatId = update.getMessage().getChatId();
             userId = update.getMessage().getFrom().getId();
-            if (msg.hasVoice()) {
-                if(state){
+            if (msg.hasVoice() ) {
+                if (state){
+                Voice voice = msg.getVoice();
                     String fileId = msg.getVoice().getFileId();
                     System.out.println("User sent voice message: " + fileId);
                     try {
-                        java.io.File folder = new java.io.File(folderPath);
-                        if (!folder.exists()) {
-                            folder.mkdirs(); // creates the folder if it doesn't exist
-                        }
-                        ZonedDateTime now = ZonedDateTime.now();
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-                        String currentTime_id = now.format(formatter) +"-"+ String.valueOf(userId);
-                        java.io.File output = new java.io.File(folder, currentTime_id+".ogg");
-                        GetFile getFile = new GetFile(fileId);
-                        org.telegram.telegrambots.meta.api.objects.File tgFile = execute(getFile);
-                        downloadFile(tgFile, output);
-                        System.out.println("Downloaded voice message to: " + output.getAbsolutePath());
-                    } catch (TelegramApiException e) {
+                        A3log alog = new A3log();
+                        java.io.File downloadedFile = alog.logVoice(voice, userId, this);
+                        System.out.println("Downloaded voice message to: " + downloadedFile.getAbsolutePath());
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
-            }else{
-                messenger.sendMsg(chatId, "Please enter both username and code by text (e.g., `user 1234`)", "text");
+                }else{
+                messenger.sendMsg(chatId, "Please enter both username and code by text (e.g., `user 123456`)", "text");
             }
+            
             }
-
-            // audio file
             if (msg.hasAudio()) {
                 String fileId = msg.getAudio().getFileId();
                 System.out.println("User sent audio file: " + fileId);
             }
         }
-        // --- TEXT HANDLER 
         if (update.hasMessage() && update.getMessage().hasText()) {
             userId = update.getMessage().getFrom().getId();
             chatId = update.getMessage().getChatId();
@@ -211,6 +199,8 @@ public class XaeBot extends TelegramLongPollingBot {
             } else {
 
                 // <-- MODE HANDLER
+                A3log alog = new A3log();
+                alog.gen_chat(text, "T");
                 if (text.startsWith("/")) {
                     String cmd = text.substring(1).toLowerCase();
 

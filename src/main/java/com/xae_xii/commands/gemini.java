@@ -107,7 +107,6 @@ public class gemini implements Command {
             } catch (IOException e) {
                 logger.error("Failed to write Gemini response to file", e);
             }
-
             return mainText;
         } catch (Exception e) {
             logger.error("Failed to extract text from Gemini response", e);

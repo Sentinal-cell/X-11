@@ -5,7 +5,6 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendVoice;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Update;
 public class Messenger {
     private final TelegramLongPollingBot bot;
     public Messenger(TelegramLongPollingBot bot) {
@@ -30,6 +29,7 @@ public class Messenger {
         SendMessage message = new SendMessage();
         message.setChatId(String.valueOf(chatId));
         message.setText(text);
+        
         try {
             bot.execute(message);
         } catch (Exception e) {

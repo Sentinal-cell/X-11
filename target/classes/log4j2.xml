@@ -7,14 +7,14 @@
         </Console>
 
         <!-- File output -->
-        <File name="MyFile" fileName="logs/app.log" append="true">
+        <File name="MyFile" fileName="logs/log4j/app.log" append="true">
             <PatternLayout>
                 <Pattern>[%d{yyyy-MM-dd HH:mm:ss}] [%t] %-5level %logger{36} - %msg%n</Pattern>
             </PatternLayout>
         </File>
 
         <!-- Rolling File (optional: rotates when file gets too big) -->
-        <RollingFile name="RollingFile" fileName="logs/rolling-app.log"
+        <RollingFile name="RollingFile" fileName="logs/log4j/rolling-app.log"
                      filePattern="logs/archive/app-%d{yyyy-MM-dd-HH-mm}-%i.log.gz">
             <PatternLayout>
                 <Pattern>[%d{yyyy-MM-dd HH:mm:ss}] [%t] %-5level %logger{36} - %msg%n</Pattern>
