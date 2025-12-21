@@ -11,18 +11,18 @@ public class chatmode implements Command {
         Messenger messenger = bot.getMessenger();
 
         if (!active) {
-            messenger.sendMsg(chatId, "Entered Chat Mode. Type /exit to leave.", XaeBot.preference);
+            messenger.sendMsg(chatId, "Entered Chat Mode. Type /exit to leave.", XaeBot.preference, "a3on");
             active = true;
             bot.setMode("chat");
         } else {
             String msg = text.trim();
 
             if (msg.equalsIgnoreCase("/exit")) {
-                messenger.sendMsg(chatId, "Exited Chat Mode.", XaeBot.preference);
+                messenger.sendMsg(chatId, "Exited Chat Mode.", XaeBot.preference, "a3on");
                 active = false;
                 bot.setMode("none");
             } else {
-                messenger.sendMsg(chatId, "[Chat Mode] You said: " + msg, XaeBot.preference);
+                messenger.sendMsg(chatId, "[Chat Mode] You said: " + msg, XaeBot.preference, "a3on");
             }
         }
     }

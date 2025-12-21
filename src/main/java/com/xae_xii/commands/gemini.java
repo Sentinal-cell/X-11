@@ -36,14 +36,14 @@ public class gemini implements Command {
         if ("/exit".equalsIgnoreCase(text)) {
             bot.setMode("none");
             history.clear();
-            messenger.sendMsg(chatId, "Exited Gemini Mode.", XaeBot.preference);
+            messenger.sendMsg(chatId, "Exited Gemini Mode.", XaeBot.preference, "gemini");
             return;
         }
 
         // Enter Gemini mode if not active
         if (!botModeIsGemini(bot)) {
             bot.setMode("gemini");
-            messenger.sendMsg(chatId, "Entered Gemini Mode. Type /exit to leave.", XaeBot.preference);
+            messenger.sendMsg(chatId, "Entered Gemini Mode. Type /exit to leave.", XaeBot.preference, "gemini");
             history.clear();
             return;
         }
@@ -73,11 +73,11 @@ public class gemini implements Command {
             String output = extractText(response.body());
             history.add("Gemini: " + output);
 
-            messenger.sendMsg(chatId, output, XaeBot.preference);
+            messenger.sendMsg(chatId, output, XaeBot.preference, "gemini");
 
         } catch (Exception e) {
             logger.error("Gemini error: ", e);
-            messenger.sendMsg(chatId, "Error contacting Gemini.", XaeBot.preference);
+            messenger.sendMsg(chatId, "Error contacting Gemini.", XaeBot.preference, "gemini");
         }
     }
 

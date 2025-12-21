@@ -60,7 +60,7 @@ public class XaeBot extends TelegramLongPollingBot {
                 long inactiveMinutes = (now - lastActivityTime) / 1000 / 60;
                 if (inactiveMinutes >= TIMEOUT_MINUTES) {
                     state = false;
-                    messenger.sendMsg(chatId, "Session expired due to inactivity. Please log in again.", "text");
+                    messenger.sendMsg(chatId, "Session expired due to inactivity. Please log in again.", "text", "a3on");
                     logger.info("User " + userId + " logged out automatically due to inactivity.");
                 }
             }
@@ -97,13 +97,13 @@ public class XaeBot extends TelegramLongPollingBot {
         long chatId = update.getCallbackQuery().getMessage().getChatId();
 
         if (callbackData.equals("voice")) {
-            messenger.sendMsg(chatId, "You chose Voice 🔊", "text");
+            messenger.sendMsg(chatId, "You chose Voice 🔊", "text", "a3on");
            preference = "voice";
         } else if (callbackData.equals("text")) {
-            messenger.sendMsg(chatId, "You chose Text 💬", "text");
+            messenger.sendMsg(chatId, "You chose Text 💬", "text", "a3on");
             preference = "text";
         } else if (callbackData.equals("any")) {
-            messenger.sendMsg(chatId, "You chose any 🔊&💬", "text");
+            messenger.sendMsg(chatId, "You chose any 🔊&💬", "text", "a3on");
             preference = "any";
         }
         return; 
@@ -127,7 +127,7 @@ public class XaeBot extends TelegramLongPollingBot {
                         e.printStackTrace();
                     }
                 }else{
-                messenger.sendMsg(chatId, "Please enter both username and code by text (e.g., `user 123456`)", "text");
+                messenger.sendMsg(chatId, "Please enter both username and code by text (e.g., `user 123456`)", "text", "a3on");
             }
             
             }
@@ -152,13 +152,13 @@ public class XaeBot extends TelegramLongPollingBot {
                 DB db = new DB();
                 Auth auth = new Auth();
                 if (login_inf.length < 2) {
-                    messenger.sendMsg(chatId, "Please enter both username  (e.g., `user 1234`)", "text");
+                    messenger.sendMsg(chatId, "Please enter both username  (e.g., `user 1234`)", "text", "a3on");
                     return;
                 }
                 if (db.check(login_inf[0], userId) && Integer.parseInt(login_inf[1]) == auth.otp()) {
                     logger.info("Login successful by " + userId);
                     String[] uinf = db.ret(login_inf[0]);
-                    messenger.sendMsg(chatId, "Welcome " + uinf[0], "text");
+                    messenger.sendMsg(chatId, "Welcome " + uinf[0], "text", "a3on");
                     state = true;
                     SendMessage message = new SendMessage();
                     message.setChatId(chatId);
@@ -191,29 +191,28 @@ public class XaeBot extends TelegramLongPollingBot {
                     }
                 } else {
                     if (db.check(login_inf[0], userId)) {
-                        messenger.sendMsg(chatId, "Authentication code incorrect...", "text");
+                        messenger.sendMsg(chatId, "Authentication code incorrect...", "text", "a3on");
                     } else {
-                        messenger.sendMsg(chatId, "Invalid credentials...", "text");
+                        messenger.sendMsg(chatId, "Invalid credentials...", "text", "a3on");
                     }
                 }
             } else {
 
                 // <-- MODE HANDLER
                 A3log alog = new A3log();
-                alog.gen_chat(text, "T");
+                alog.gen_chat(text, Long.toString(userId));
                 if (text.startsWith("/")) {
                     String cmd = text.substring(1).toLowerCase();
-
                     if (cmd.equals("chatmode")) {
                         mode = "chat";
-                        messenger.sendMsg(chatId, "Entered Chat Mode. Type /exit to leave.", "text");
+                        messenger.sendMsg(chatId, "Entered Chat Mode. Type /exit to leave.", "text", "a3on");
                         return;
                     } else if (cmd.equals("gemini")) {
                         commands.get("gemini").execute(chatId, text, this);
                         return;
                     } else if (cmd.equals("exit")) {
                         mode = "none";
-                        messenger.sendMsg(chatId, "Exited current mode.", "text");
+                        messenger.sendMsg(chatId, "Exited current mode.", "text", "a3on");
                         return;
                     }
 
@@ -221,7 +220,7 @@ public class XaeBot extends TelegramLongPollingBot {
                     if (actions != null) {
                         actions.execute(chatId, text, this);
                     } else {
-                        messenger.sendMsg(chatId, "Unknown command: " + cmd, "text");
+                        messenger.sendMsg(chatId, "Unknown command: " + cmd, "text", "a3on");
                     }
                 } else {
                     if (mode.equals("gemini")) {
@@ -229,9 +228,9 @@ public class XaeBot extends TelegramLongPollingBot {
                         return;
                     }
                     if (mode.equals("chat")) {
-                        messenger.sendMsg(chatId, "[Chat Mode] You said: " + text, "text");
+                        messenger.sendMsg(chatId, "[Chat Mode] You said: " + text, "text", "a3on");
                     } else {
-                        messenger.sendMsg(chatId, "You said: " + text, "text");
+                        messenger.sendMsg(chatId, "You said: " + text, "text", "a3on");
                     }
                 }
                 // <-- MODE

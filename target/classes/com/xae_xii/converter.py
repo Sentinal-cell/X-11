@@ -7,9 +7,9 @@ text = sys.argv[1]
 # project root
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".."))
 
-output_folder = os.path.join(project_root, "voice_files")
+output_folder = os.path.join(project_root, "logs/voice_files")
 os.makedirs(output_folder, exist_ok=True)
-output_file = os.path.join(output_folder, "output.ogg")
+output_file = os.path.join(output_folder, sys.argv[2])
 
 #temporary MP3
 temp_mp3 = os.path.join(output_folder, "temp.mp3")

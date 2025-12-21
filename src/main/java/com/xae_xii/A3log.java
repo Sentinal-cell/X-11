@@ -16,21 +16,13 @@ import org.telegram.telegrambots.meta.api.objects.Voice;
 public class A3log {
     public String voiceFolderPath ="logs/vnc";
     private static final Logger logger = LogManager.getLogger(A3log.class);
-    public void gen_chat(String text, String s){
+    public void gen_chat(String text, String caller){
         String W = null;
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("logs/gen/main_log.txt", true))) {
             LocalDateTime now = LocalDateTime.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedDateTime = "[" + now.format(formatter) + "]";
-            switch (s) {
-                case "G":
-                    W = "Gemini";
-                    break;
-                case "T":
-                    W = "x11";
-                    break;
-            }
-            writer.write(formattedDateTime + "-" +W+ ": "+ text);
+            writer.write(formattedDateTime + "-" +caller+ ": "+ text);
             writer.newLine();
     }catch(IOException e){
         logger.error("Gemini error: ", e);
