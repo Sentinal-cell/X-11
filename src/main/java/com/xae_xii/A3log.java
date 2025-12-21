@@ -31,7 +31,6 @@ public class A3log {
                     break;
             }
             writer.write(formattedDateTime + "-" +W+ ": "+ text);
-            writer.write("Another line");
             writer.newLine();
     }catch(IOException e){
         logger.error("Gemini error: ", e);
