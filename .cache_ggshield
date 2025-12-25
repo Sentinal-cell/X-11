@@ -1,1 +1,1 @@
-{"last_found_secrets": [{"name": "Google API Key - commit://staged/src/main/java/com/xae_xii/commands/gemini.java", "match": "42c28650c89d94478beaed9a1dfccf3022748021bbcaf357dc3d9cc015c162a8"}]}
+{"last_found_secrets": [{"match": "12de0fe319ec60b52f695be5f6f352d4d3db0ded07359151d8fea5f554b62bf6", "name": "SMTP credentials - commit://staged/src/main/java/com/xae_xii/test.java"}]}

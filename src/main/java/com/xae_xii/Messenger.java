@@ -45,7 +45,7 @@ public class Messenger {
             String filename = now.format(formatter) + "-" + chatId + ".ogg";
             // Here, call your Python script to generate TTS
             Process p = new ProcessBuilder(
-                "python", "C:\\\\Users\\\\Ahmad\\\\Desktop\\\\a3on\\\\src\\\\main\\\\java\\\\com\\\\xae_xii\\\\converter.py", text, filename
+                "python", "C:\\\\Users\\\\Ahmad\\\\Desktop\\\\a3on\\\\src\\\\python\\\\converter.py", text, filename
             ).start();
             p.waitFor(); // Wait for Python to finish
 

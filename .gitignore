@@ -2,5 +2,3 @@
 logs/
 linode_deploy_key
 linode_deploy_key.pub
-voice_files/
-vnc/

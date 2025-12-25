@@ -5,7 +5,7 @@ import sys
 import subprocess
 text = sys.argv[1]
 # project root
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".."))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 output_folder = os.path.join(project_root, "logs/voice_files")
 os.makedirs(output_folder, exist_ok=True)

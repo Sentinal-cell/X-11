@@ -1,5 +1,7 @@
 package com.xae_xii;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -92,6 +94,7 @@ public class XaeBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        String vm = null; 
         if (update.hasCallbackQuery()) {
         String callbackData = update.getCallbackQuery().getData();
         long chatId = update.getCallbackQuery().getMessage().getChatId();
@@ -123,6 +126,24 @@ public class XaeBot extends TelegramLongPollingBot {
                         A3log alog = new A3log();
                         java.io.File downloadedFile = alog.logVoice(voice, userId, this);
                         System.out.println("Downloaded voice message to: " + downloadedFile.getAbsolutePath());
+                        ProcessBuilder pb = new ProcessBuilder(
+                            "python", "C:\\\\Users\\\\Ahmad\\\\Desktop\\\\a3on\\\\src\\\\python\\\\STT.py", "\"C:\\Users\\Ahmad\\Desktop\\a3on\\logs\\voice_files\\2025-12-20_23-15-06-7432819887.ogg\""
+                        );
+                        pb.redirectErrorStream(true);
+                        Process process = pb.start();
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                        StringBuilder output = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            output.append(line).append("\n");
+                        }
+                        int exitCode = process.waitFor();
+                        if (exitCode == 0) {
+                            System.out.println("Transcription: " + output.toString().trim());
+                            vm = output.toString().trim();
+                        } else {
+                            System.err.println("STT process failed");
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -136,10 +157,16 @@ public class XaeBot extends TelegramLongPollingBot {
                 System.out.println("User sent audio file: " + fileId);
             }
         }
-        if (update.hasMessage() && update.getMessage().hasText()) {
+        if (update.hasMessage() && update.getMessage().hasText() || vm != null) {// add or for voice
+            String text = null;
             userId = update.getMessage().getFrom().getId();
             chatId = update.getMessage().getChatId();
-            String text = update.getMessage().getText();
+            if (update.getMessage().getText() != null){
+                text = update.getMessage().getText();
+            } else{
+                text = vm;
+                logger.info(vm);
+            }
             lastActivityTime = System.currentTimeMillis();
 
             if (userId != ALLOWED_USER_ID) {
@@ -177,7 +204,7 @@ public class XaeBot extends TelegramLongPollingBot {
                     row.add(textr);
                     row.add(v_t);
 
-                    List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+                List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
                     keyboard.add(row);
 
                     InlineKeyboardMarkup markup = new InlineKeyboardMarkup();

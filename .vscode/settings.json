@@ -1,10 +1,7 @@
 {
   "[java]": {
-    "editor.formatOnSave": false,
-    "editor.formatOnPaste": false,
-    "editor.codeActionsOnSave": {}
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true
   },
-  "java.saveActions.organizeImports": false,
-  "java.format.enabled": false,
-  "java.configuration.updateBuildConfiguration": "interactive"
+ 
 }
